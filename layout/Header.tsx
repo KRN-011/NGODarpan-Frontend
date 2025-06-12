@@ -5,10 +5,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiAlignRight } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { signOut, useSession } from "next-auth/react";
+import Cookies from "js-cookie";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
 
+    // non-state variables
+    const { data: session } = useSession()
+    const authRoutes = ["/auth/login", "/auth/signup"]
+    const pathname = usePathname()
+    const isLoggedIn = Cookies.get('token')
+
+    // state variables
     const [menuOpen, setMenuOpen] = useState(false)
+
+    // handle Logout
+    const handleLogout = () => {
+        Cookies.remove('token')
+        Cookies.remove('user')
+        signOut({ callbackUrl: '/auth/login?redirect=true&from=logout' })
+    }
+
+    // check if the current path is an auth route
+    const isAuthRoute = authRoutes.includes(pathname)
 
     return (
         <div className="w-full bg-secondary relative">
@@ -21,11 +41,21 @@ export default function Header() {
                     <Link href="/about">About</Link>
                     <Link href="/contact">Contact</Link>
                 </div>
-                <div className="flex items-center">
-                    <Link href="/auth/login" className="px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:rounded-tl-0 before:rounded-bl-0 hover:before:rounded-tl-10 hover:before:rounded-bl-10 before:right-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10">Login</Link>
-                    <div className="h-6 w-[1px] bg-tertiary"></div>
-                    <Link href="/auth/signup" className="px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:left-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10">Signup</Link>
-                </div>
+                {
+                    isLoggedIn || session ? (
+                        <div className="flex gap-4 items-center">
+                            <button
+                                onClick={handleLogout}
+                                className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary relative before:content-[''] before:w-full before:h-0 before:bg-tertiary before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
+                        </div>
+                    ) : (
+                        <div className={`flex items-center  ${isAuthRoute ? "hidden" : ""}`}>
+                            <Link href="/auth/login" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute  before:right-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Login</Link>
+                            <div className="h-6 w-[1px] bg-tertiary"></div>
+                            <Link href="/auth/signup" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:left-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Signup</Link>
+                        </div>
+                    )
+                }
             </div>
 
             {/* Mobile Menu */}
@@ -57,11 +87,23 @@ export default function Header() {
                                     <div className="h-[1px] w-1/2 mx-auto bg-tertiary"></div>
                                     <Link href="/contact">Contact</Link>
                                     <div className="h-[1px] w-1/2 mx-auto bg-tertiary"></div>
-                                    <div className="flex gap-4 items-center">
-                                        <Link href="/login">Login</Link>
-                                        <div className="h-10 w-[1px] bg-tertiary"></div>
-                                        <Link href="/signup">Signup</Link>
-                                    </div>
+                                    {
+                                        isLoggedIn || session ? (
+                                            <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
+                                                <button
+                                                    onClick={() => {
+                                                        signOut()
+                                                        handleLogout()
+                                                    }}>Logout</button>
+                                            </div>
+                                        ) : (
+                                            <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
+                                                <Link href="/login">Login</Link>
+                                                <div className="h-10 w-[1px] bg-tertiary"></div>
+                                                <Link href="/signup">Signup</Link>
+                                            </div>
+                                        )
+                                    }
                                 </div>
                             </motion.div>
                         </div>

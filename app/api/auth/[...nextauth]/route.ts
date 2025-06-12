@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import GithubProvider from 'next-auth/providers/github';
+import { socialMediaAuthentication } from '@/lib/api';
 
 export const authOptions = {
     providers: [
@@ -20,22 +21,38 @@ export const authOptions = {
     ],
     callbacks: {
         async jwt({ token, account, user }: { token: any, account: any, user: any }) {
-            console.log('JWT callback:', { token, account, user });
-            return token;
+
+            // On initial sign-in
+            if ( account && user ) {
+                token.provider = account.provider;
+                token.email = user.email;
+                token.name = user.name;
+                token.picture = user.image;
+                token.providerAccountId = account.providerAccountId;
+            }
+
+            if ( token?.email && token?.provider ) {
+                const response = await socialMediaAuthentication({
+                    email: token.email,
+                    username: token.name,
+                    image: token.picture,
+                    provider: token.provider,
+                    providerAccountId: token.providerAccountId,
+                });
+
+                const data = response.data;
+
+                // storing backend jwt in token to pass into session
+                if ( response.success ) {
+                    token.accessToken = data.token;
+                }
+
+                return token;
+            }
         },
-        async session({ session, token, user }: { session: any, token: any, user: any }) {
-            console.log('Session callback:', { session, token, user });
+        async session({ session, token }: { session: any, token: any }) {
+            session.accessToken = token.accessToken;
             return session;
-        },
-        async signIn({ user, account, profile, email, credentials }: { user?: any, account?: any, profile?: any, email?: any, credentials?: any }) {
-            console.log('SignIn callback:', {
-                user,
-                account,
-                profile,
-                email,
-                credentials,
-            });
-            return true;
         },
     },
     async error({ error }: { error: any }) {
@@ -46,7 +63,8 @@ export const authOptions = {
         signIn: '/auth/login',
         signOut: '/auth/signup',
     },
-    debug: true,
+    // debug: true,
+    timeout: 10000,
 };
 
 const handler = NextAuth(authOptions);

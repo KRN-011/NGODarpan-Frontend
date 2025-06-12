@@ -2,21 +2,42 @@
 
 import { useSession, signIn, signOut } from "next-auth/react"
 import Image from "next/image"
+import Cookies from "js-cookie"
 import { redirect } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function SignUpPage() {
 
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
+    const [email, setEmail] = useState("")
+    
+    useEffect(() => {
+        if (status === "authenticated" && session) {
+            Cookies.set("token", (session as any).accessToken);
+            Cookies.set("user", JSON.stringify(session.user));
+            redirect("/auth/login?redirect=true&from=signup");
+        }
+    }, [status, session])
 
-    if (session) {
-        redirect("/")
+    if (status === "loading") {
+        return (
+            <div className="flex justify-center items-center w-full h-screen animate-pulse">
+                <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} />
+            </div>
+        )
+    }
+
+    if (status === "authenticated") {
+        return (
+            <div className="flex justify-center items-center w-full h-screen animate-pulse text-2xl font-bold max-w-md text-balance mx-auto text-center">
+                Wait while we redirect you to the login page...
+            </div>
+        )
     }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        const formData = new FormData(e.target as HTMLFormElement)
-        const email = formData.get("email") as string
-        signIn("email", { email })
+        redirect(`/auth/signup/email?redirect=true&from=signup&email=${encodeURIComponent(email)}`)
     }
 
     return (
@@ -41,7 +62,7 @@ export default function SignUpPage() {
                         </div>
                         <form onSubmit={handleSubmit} className="w-3/4 mx-auto">
                             <div className="flex flex-col w-full gap-4">
-                                <input type="email" placeholder="Enter your email" className="w-full p-2 rounded-md border-2 border-muted" />
+                                <input type="email" placeholder="Enter your email" className="w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary" value={email} onChange={(e) => setEmail(e.target.value)} />
                                 <button type="submit" className="p-2 rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary">Signup with Email</button>
                             </div>
                         </form>
