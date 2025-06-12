@@ -1,0 +1,26 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Tailwind CSS */
+@import "tailwindcss";
+
+@theme {
+  
+  /* Custom Colors */
+  --color-primary: #EAE7DC;
+  --color-secondary: #D8C3A5;
+  --color-tertiary: #8E8D8A;
+  --color-quaternary: #E98074;
+  --color-quinary: #E85A4F;
+  --color-muted: #99a1af;
+  --color-muted-light: #d1d5db;
+  --color-muted-dark: #374151;
+  --color-secondary-light: #e4d5c0;
+  --color-primary-light: #f5f3ee;
+
+  /* Custom Fonts */
+  --font-saira: 'Saira', sans-serif;
+
+  /* Custom Breakpoints */
+  --breakpoint-sm: 425px;
+}
