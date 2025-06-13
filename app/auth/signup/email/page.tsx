@@ -8,6 +8,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/utils";
+import { z } from "zod"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const signupEmailSchema = z.object({
+    email: z.string().email({ message: "Invalid email address" }),
+    username: z.string().min(3, { message: "Username must be at least 3 characters long" }),
+    password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
+    remember: z.boolean().optional(),
+})
+
+type SignupEmailForm = z.infer<typeof signupEmailSchema>;
+
 
 export default function SignUpEmailPage() {
 
@@ -15,43 +28,38 @@ export default function SignUpEmailPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
-    // state variables
-    const [form, setForm] = useState({
-        email: "",
-        username: "",
-        password: "",
-        remember: false,
+    // form variables
+    const { register, handleSubmit, formState: { errors, isSubmitting }, setError, reset, setValue } = useForm<SignupEmailForm>({
+        resolver: zodResolver(signupEmailSchema),
+        defaultValues: {
+            email: "",
+            username: "",
+            password: "",
+            remember: false,
+        }
     })
-    const [error, setError] = useState("")
-    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         if (searchParams.get("email")) {
-            setForm({ ...form, email: decodeURIComponent(searchParams.get("email") as string) })
+            setValue("email", decodeURIComponent(searchParams.get("email") as string))
         }
     }, [])
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-
-        setLoading(true)
-
+    const onSubmit = async (data: SignupEmailForm) => {
         try {
-            const response = await registerUser(form)
+            const response = await registerUser(data)
 
             if (response.success) {
                 toast.success("OTP sent to your email", {
                     onClose: () => {
-                        router.push("/auth/signup/email/verify?email=" + encodeURIComponent(form.email));
+                        router.push("/auth/signup/email/verify?email=" + encodeURIComponent(data.email));
                     },
                     autoClose: 1500,
                 });
             }
         } catch (error: any) {
             toast.error(error.response.data.message)
-            setError(error.response.data.message)
-        } finally {
-            setLoading(false)
+            setError("root", { message: error.response.data.message || "Something went wrong" })
         }
     }
 
@@ -59,24 +67,24 @@ export default function SignUpEmailPage() {
         <div className="flex justify-center w-full h-full items-center py-32">
             <div className="bg-secondary-light dark:bg-muted-darker w-1/4 p-10 rounded-3xl">
                 <h1 className="text-2xl font-bold text-center">SignUp with Email</h1>
-                <form action="" className="flex flex-col gap-4 mt-10" onSubmit={handleSubmit}>
+                <form action="" className="flex flex-col gap-4 mt-10" onSubmit={handleSubmit(onSubmit)}>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="email">Email</label>
-                        <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={cn(
+                        <input type="email" {...register("email")} className={cn(
                             "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
                             "dark:border-muted-dark"
                         )} autoComplete="email" />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="username">Username</label>
-                        <input type="text" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className={cn(
+                        <input type="text" {...register("username")} className={cn(
                             "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
                             "dark:border-muted-dark"
                         )} autoComplete="username" />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="password">Password</label>
-                        <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className={cn(
+                        <input type="password" {...register("password")} className={cn(
                             "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
                             "dark:border-muted-dark"
                         )} autoComplete="new-password" />
@@ -85,17 +93,16 @@ export default function SignUpEmailPage() {
                         <label className="flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
-                                name="remember"
                                 id="remember"
                                 className="sr-only peer"
-                                checked={form.remember}
-                                onChange={(e) => setForm({ ...form, remember: e.target.checked })}
+                                {...register("remember")}
+                                defaultChecked
                             />
                             <span className={cn(
                                 "w-4 h-4 border border-muted flex items-center justify-center ml-2 peer-checked:bg-primary peer-checked:border-quaternary transition-colors rounded",
                                 "dark:border-muted-dark dark:peer-checked:bg-muted"
                             )}>
-                                <FiCheck className={`text-tertiary dark:text-muted-darker ${form.remember ? 'block' : 'hidden'} transition-all duration-300`} />
+                                <FiCheck className={`text-tertiary dark:text-muted-darker`} />
                             </span>
                             <span className="ml-2">Remember me</span>
                         </label>
@@ -104,8 +111,8 @@ export default function SignUpEmailPage() {
                         "p-2 w-3/4 mx-auto rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary mt-4",
                         "dark:bg-muted-dark dark:text-primary hover:bg-muted dark:hover:text-quinary",
                         "disabled:opacity-50 disabled:cursor-not-allowed"
-                    )} disabled={loading}>
-                        {loading ? <div className="flex items-center min-h-6 gap-2 justify-center w-full"><div className="w-4 h-4 border-2 border-tertiary rounded-full animate-spin"></div> </div> : "SignUp"}
+                    )} disabled={isSubmitting}>
+                        {isSubmitting ? <div className="flex items-center min-h-6 gap-2 justify-center w-full"><div className="w-4 h-4 border-2 border-tertiary dark:border-quaternary rounded-full animate-spin"></div> </div> : "SignUp"}
                     </button>
                 </form>
                 <div className="flex flex-col gap-2 mt-5">

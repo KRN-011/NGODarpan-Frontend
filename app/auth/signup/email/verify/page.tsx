@@ -127,7 +127,7 @@ export default function VerifyPage() {
                             "dark:bg-muted-dark dark:text-primary hover:bg-muted dark:hover:text-quinary",
                             "disabled:opacity-50 disabled:cursor-not-allowed"
                         )} disabled={loading}>
-                            {loading ? <div className="flex items-center min-h-6 gap-2 justify-center w-full"><div className="w-4 h-4 border-2 border-tertiary dark:border-muted-light rounded-full animate-spin"></div></div> : "Verify"}
+                            {loading ? <div className="flex items-center min-h-6 gap-2 justify-center w-full"><div className="w-4 h-4 border-2 border-tertiary dark:border-quaternary rounded-full animate-spin"></div></div> : "Verify"}
                         </button>
                     </div>
                 </form>

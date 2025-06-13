@@ -7,12 +7,27 @@ import { redirect } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { z } from "zod"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
+const signupSchema = z.object({
+    email: z.string().email({ message: "Invalid email address" }),
+})
+
+type SignupForm = z.infer<typeof signupSchema>;
 
 export default function SignUpPage() {
 
     const { data: session, status } = useSession()
-    const [email, setEmail] = useState("")
+    
+    // form variables
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignupForm>({
+        resolver: zodResolver(signupSchema),
+        defaultValues: {
+            email: "",
+        }
+    })
 
     useEffect(() => {
         if (status === "authenticated" && session) {
@@ -38,9 +53,8 @@ export default function SignUpPage() {
         )
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        redirect(`/auth/signup/email?redirect=true&from=signup&email=${encodeURIComponent(email)}`)
+    const onSubmit = (data: SignupForm) => {
+        redirect(`/auth/signup/email?redirect=true&from=signup&email=${encodeURIComponent(data.email)}`)
     }
 
     return (
@@ -71,12 +85,13 @@ export default function SignUpPage() {
                             <p className="text-muted-dark dark:text-muted-light">or</p>
                             <div className="w-full h-[1px] bg-muted-dark"></div>
                         </div>
-                        <form onSubmit={handleSubmit} className="w-3/4 mx-auto">
+                        <form onSubmit={handleSubmit(onSubmit)} className="w-3/4 mx-auto">
                             <div className="flex flex-col w-full gap-4">
                                 <input type="email" placeholder="Enter your email" className={cn(
                                     "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
                                     "dark:border-muted-dark"
-                                )} value={email} onChange={(e) => setEmail(e.target.value)} />
+                                )} {...register("email")} />
+                                { errors.email && <span className="text-red-500 text-xs">{errors.email.message}</span> }
                                 <button type="submit" className={cn(
                                     "p-2 rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary",
                                     "dark:bg-muted-dark dark:text-primary hover:bg-muted dark:hover:text-quinary"
