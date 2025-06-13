@@ -7,6 +7,7 @@ import { FiCheck } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
 
 export default function SignUpEmailPage() {
 
@@ -56,20 +57,29 @@ export default function SignUpEmailPage() {
 
     return (
         <div className="flex justify-center w-full h-full items-center py-32">
-            <div className="bg-secondary-light w-1/4 p-10 rounded-3xl">
+            <div className="bg-secondary-light dark:bg-muted-darker w-1/4 p-10 rounded-3xl">
                 <h1 className="text-2xl font-bold text-center">SignUp with Email</h1>
                 <form action="" className="flex flex-col gap-4 mt-10" onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="email">Email</label>
-                        <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary" autoComplete="email" />
+                        <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={cn(
+                            "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                            "dark:border-muted-dark"
+                        )} autoComplete="email" />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="username">Username</label>
-                        <input type="text" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className="w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary" autoComplete="username" />
+                        <input type="text" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className={cn(
+                            "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                            "dark:border-muted-dark"
+                        )} autoComplete="username" />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="password">Password</label>
-                        <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary" autoComplete="new-password" />
+                        <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className={cn(
+                            "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                            "dark:border-muted-dark"
+                        )} autoComplete="new-password" />
                     </div>
                     <div className="flex items-center gap-2">
                         <label className="flex items-center cursor-pointer">
@@ -81,14 +91,21 @@ export default function SignUpEmailPage() {
                                 checked={form.remember}
                                 onChange={(e) => setForm({ ...form, remember: e.target.checked })}
                             />
-                            <span className="w-4 h-4 border border-muted flex items-center justify-center ml-2 peer-checked:bg-primary peer-checked:border-quaternary transition-colors rounded">
-                                <FiCheck className={`text-tertiary ${form.remember ? 'block' : 'hidden'} transition-all duration-300`} />
+                            <span className={cn(
+                                "w-4 h-4 border border-muted flex items-center justify-center ml-2 peer-checked:bg-primary peer-checked:border-quaternary transition-colors rounded",
+                                "dark:border-muted-dark dark:peer-checked:bg-muted"
+                            )}>
+                                <FiCheck className={`text-tertiary dark:text-muted-darker ${form.remember ? 'block' : 'hidden'} transition-all duration-300`} />
                             </span>
                             <span className="ml-2">Remember me</span>
                         </label>
                     </div>
-                    <button type="submit" className="p-2 w-3/4 mx-auto rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary mt-4" disabled={loading}>
-                        {loading ? <div className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-tertiary rounded-full animate-spin"></div> <span className="text-quaternary text-center">Loading...</span></div> : "SignUp"}
+                    <button type="submit" className={cn(
+                        "p-2 w-3/4 mx-auto rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary mt-4",
+                        "dark:bg-muted-dark dark:text-primary hover:bg-muted dark:hover:text-quinary",
+                        "disabled:opacity-50 disabled:cursor-not-allowed"
+                    )} disabled={loading}>
+                        {loading ? <div className="flex items-center min-h-6 gap-2 justify-center w-full"><div className="w-4 h-4 border-2 border-tertiary rounded-full animate-spin"></div> </div> : "SignUp"}
                     </button>
                 </form>
                 <div className="flex flex-col gap-2 mt-5">

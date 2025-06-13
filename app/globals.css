@@ -13,14 +13,37 @@
   --color-quaternary: #E98074;
   --color-quinary: #E85A4F;
   --color-muted: #99a1af;
-  --color-muted-light: #d1d5db;
-  --color-muted-dark: #374151;
+  --color-muted-light: #b8bdc7;
+  --color-muted-dark: #5c6169;
+  --color-muted-darker: #2e3034;
   --color-secondary-light: #e4d5c0;
   --color-primary-light: #f5f3ee;
+  --color-primary-dark: #bbb9b0;
+  --color-secondary-dark: #978973;
 
   /* Custom Fonts */
   --font-saira: 'Saira', sans-serif;
 
   /* Custom Breakpoints */
   --breakpoint-sm: 425px;
+}
+
+/* Theme settings */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@layer base {
+  html {
+    @apply transition-colors duration-300;
+  }
+}
+
+
+
+
+
+/* Adding custom classes */
+
+.preload {
+  visibility: hidden;
 }

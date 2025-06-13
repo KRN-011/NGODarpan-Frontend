@@ -1,13 +1,42 @@
 "use client"
 
-import React, { useState } from "react";
+// IMPORTS
+
+// React
+import React, { useEffect, useState } from "react";
+
+// Next Features
 import Image from "next/image";
 import Link from "next/link";
-import { FiAlignRight } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
-import { signOut, useSession } from "next-auth/react";
-import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
+
+// React Icons
+import { FiAlignRight } from "react-icons/fi";
+import { IoMdMoon, IoMdSunny, IoIosArrowDown, IoMdPerson } from "react-icons/io";
+
+// Framer Motion
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
+
+// Next Auth
+import { signOut, useSession } from "next-auth/react";
+
+// API imports
+import { logoutUser } from "@/lib/api";
+
+// Contexts
+import { useTheme } from "@/context/ThemeContext";
+
+// Packages
+import Cookies from "js-cookie";
+import { toast } from "react-toastify";
+
+
+
+
+
+
+
+
 
 export default function Header() {
 
@@ -19,43 +48,97 @@ export default function Header() {
 
     // state variables
     const [menuOpen, setMenuOpen] = useState(false)
+    const { theme, setTheme } = useTheme();
+
+    // handle Theme
+    const handleTheme = () => {
+        setTheme(theme === "light" ? "dark" : "light")
+    }
 
     // handle Logout
-    const handleLogout = () => {
-        Cookies.remove('token')
-        Cookies.remove('user')
-        signOut({ callbackUrl: '/auth/login?redirect=true&from=logout' })
+    const handleLogout = async () => {
+        const token = Cookies.get('token')
+        if (token) {
+            try {
+                const response = await logoutUser(token)
+                if (response.success) {
+                    Cookies.remove('token')
+                    Cookies.remove('user')
+                    toast.success(response.message, {
+                        onClose: () => {
+                            signOut({ callbackUrl: '/auth/login?redirect=true&from=logout' })
+                        }
+                    })
+                }
+            } catch (error: any) {
+                toast.error(error.response.data.message)
+            }
+        }
     }
 
     // check if the current path is an auth route
     const isAuthRoute = authRoutes.includes(pathname)
 
     return (
-        <div className="w-full bg-secondary relative">
+        <div className="w-full bg-secondary dark:bg-muted-darker relative transition-all duration-300 min-h-16 z-[99]">
             <div className="flex justify-between px-20 py-4 items-center [@media(max-width:768px)]:hidden">
                 <div>
-                    <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} />
+                    <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} className="dark:invert dark:brightness-50" />
                 </div>
                 <div className="flex gap-6">
                     <Link href="/">Home</Link>
                     <Link href="/about">About</Link>
                     <Link href="/contact">Contact</Link>
                 </div>
-                {
-                    isLoggedIn || session ? (
-                        <div className="flex gap-4 items-center">
-                            <button
-                                onClick={handleLogout}
-                                className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary relative before:content-[''] before:w-full before:h-0 before:bg-tertiary before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
-                        </div>
-                    ) : (
-                        <div className={`flex items-center  ${isAuthRoute ? "hidden" : ""}`}>
-                            <Link href="/auth/login" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute  before:right-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Login</Link>
-                            <div className="h-6 w-[1px] bg-tertiary"></div>
-                            <Link href="/auth/signup" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:left-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Signup</Link>
-                        </div>
-                    )
-                }
+                <div className="flex items-center gap-8">
+                    <div className="flex">
+                        <motion.div
+                            onClick={handleTheme}
+                            transition={{ duration: 0.3 }}
+                            className="rounded-3xl h-7 w-12 bg-secondary-dark dark:bg-muted-light transition-all duration-300 flex items-center p-1 cursor-pointer"
+                        >
+                            <motion.div
+                                animate={{ x: theme === "light" ? 0 : "100%", rotate: theme === "dark" ? 0 : 60 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                                className="w-5 h-full bg-primary dark:bg-muted-darker rounded-full flex items-center justify-center"
+                            >
+                                {
+                                    theme === "light" ? (
+                                        <IoMdSunny className="text-yellow-600" />
+                                    ) : (
+                                        <IoMdMoon className="text-white" />
+                                    )
+                                }
+                            </motion.div>
+                        </motion.div>
+                    </div>
+                    {
+                        isLoggedIn || session ? (
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <motion.div
+                                        whileHover={{ scale: 1.05 }}
+                                        className="flex items-center rounded-full bg-secondary-dark dark:bg-muted-light cursor-pointer p-1 peer"
+                                    >
+                                        <IoMdPerson className="text-primary dark:text-muted-darker z-0" size={23} />
+                                    </motion.div>
+                                    <div className="absolute inset-0 -z-10 flex items-center justify-center peer-hover:translate-y-6 transition-all duration-300">
+                                        <IoIosArrowDown className="text-secondary-dark dark:text-muted-light" size={18} />
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
+                            </div>
+                        ) : (
+                            <div className={`flex items-center  ${isAuthRoute ? "hidden" : ""}`}>
+                                <Link href="/auth/login" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute  before:right-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Login</Link>
+                                <div className="h-6 w-[1px] bg-tertiary"></div>
+                                <Link href="/auth/signup" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:left-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Signup</Link>
+                            </div>
+                        )
+                    }
+                </div>
             </div>
 
             {/* Mobile Menu */}
@@ -92,7 +175,6 @@ export default function Header() {
                                             <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
                                                 <button
                                                     onClick={() => {
-                                                        signOut()
                                                         handleLogout()
                                                     }}>Logout</button>
                                             </div>

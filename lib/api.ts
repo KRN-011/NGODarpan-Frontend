@@ -43,9 +43,9 @@ export const loginUser = async (data: any) => {
 };
 
 // Logout User
-export const logoutUser = async () => {
+export const logoutUser = async (token: string) => {
     try {
-        const response = await axios.post(`${API_URL}/auth/logout`, { id: JWT_TOKEN });
+        const response = await axios.post(`${API_URL}/auth/logout`, { token });
         return response.data;
     } catch (error) {
         throw error;
@@ -69,6 +69,9 @@ export const verifyUser = async (otp: string, token: string) => {
 export const socialMediaAuthentication = async (data: any) => {
     try {
         const response = await axios.post(`${API_URL}/auth/social`, data);
+
+        console.log(response);
+
         return response.data;
     } catch (error) {
         throw error;

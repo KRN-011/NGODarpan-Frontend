@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import GithubProvider from 'next-auth/providers/github';
-import { socialMediaAuthentication } from '@/lib/api';
+import { logoutUser, socialMediaAuthentication } from '@/lib/api';
 
 export const authOptions = {
     providers: [

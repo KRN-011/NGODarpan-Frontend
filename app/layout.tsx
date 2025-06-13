@@ -5,8 +5,9 @@ import Footer from "@/layout/Footer";
 import { NextAuthProvider } from "@/lib/providers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { ThemeProvider } from "@/context/ThemeContext";
+import CustomToastContainer from "@/components/CustomToastContainer";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "NGO Darpan",
@@ -23,19 +24,45 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <NextAuthProvider session={session}>
-        <body
-          className={`font-saira antialiased bg-primary flex flex-col min-h-screen`}
-        >
-          <Header />
-          <main className="flex-1">
-            {children}
-            
-          </main>
-          <Footer />
-          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-          </body>
-      </NextAuthProvider>
+
+      <body
+        className={`preload font-saira antialiased bg-primary dark:bg-muted-dark dark:text-primary transition-all duration-300 flex flex-col min-h-screen`}
+      >
+        <Script id="remove-preload" strategy="afterInteractive">
+          {`
+            if (document.readyState === 'loading') {
+              window.addEventListener('DOMContentLoaded', function() {
+                document.body.classList.remove('preload');
+              });
+            } else {
+              document.body.classList.remove('preload');
+            }
+          `}
+        </Script>
+        <Script id="theme-loader" strategy="beforeInteractive">
+          {`
+                (function() {
+                  try {
+                    var theme = window.localStorage.getItem('theme') || document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
+                    if (theme) {
+                      document.documentElement.setAttribute('data-theme', theme);
+                      }
+                      } catch(e) {}
+                      })();
+                      `}
+        </Script>
+        <NextAuthProvider session={session}>
+          <ThemeProvider>
+            <Header />
+            <main className="flex-1">
+              {children}
+
+            </main>
+            <Footer />
+            <CustomToastContainer />
+          </ThemeProvider>
+        </NextAuthProvider>
+      </body>
     </html>
   );
 }

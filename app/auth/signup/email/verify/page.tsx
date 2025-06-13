@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-toastify"
 import Cookies from "js-cookie"
+import { cn } from "@/lib/utils"
 
 export default function VerifyPage() {
 
@@ -96,9 +97,9 @@ export default function VerifyPage() {
 
     return (
         <div className="flex justify-center w-full h-full items-center py-32">
-            <div className="bg-secondary-light w-1/4 p-10 rounded-3xl">
+            <div className="bg-secondary-light dark:bg-muted-darker w-1/4 p-10 rounded-3xl">
                 <h1 className="text-2xl font-bold text-center">Verify</h1>
-                <p className="text-center text-tertiary text-sm mt-4">Enter the OTP sent to your email : <Link href={`mailto:${email}`} className="font-semibold text-muted-dark">{email ? email : "-"}</Link></p>
+                <p className="text-center text-tertiary text-sm mt-4">Enter the OTP sent to your email : <Link href={`mailto:${email}`} className="font-semibold text-muted-dark dark:text-muted-light">{email ? email : "-"}</Link></p>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-10">
                     <div className="flex flex-col gap-1">
                         <div className="flex gap-2 justify-center">
@@ -113,13 +114,20 @@ export default function VerifyPage() {
                                     onChange={e => handleOtpChange(e, idx)}
                                     onKeyDown={e => handleOtpKeyDown(e, idx)}
                                     onPaste={handleOtpPaste}
-                                    className="w-12 h-12 text-center text-xl border-2 border-muted rounded-lg focus:outline-none focus:border-quaternary transition-all"
+                                    className={cn(
+                                        "w-12 h-12 text-center text-xl border-2 border-muted rounded-lg focus:outline-none focus:border-quaternary transition-all duration-300",
+                                        "dark:border-muted-dark"
+                                    )}
                                     autoComplete="one-time-code"
                                 />
                             ))}
                         </div>
-                        <button type="submit" className="p-2 w-3/4 mx-auto rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary mt-10" disabled={loading}>
-                            {loading ? <div className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-tertiary rounded-full animate-spin"></div> <span className="text-quaternary text-center">Loading...</span></div> : "Verify"}
+                        <button type="submit" className={cn(
+                            "p-2 w-3/4 mx-auto rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary mt-10",
+                            "dark:bg-muted-dark dark:text-primary hover:bg-muted dark:hover:text-quinary",
+                            "disabled:opacity-50 disabled:cursor-not-allowed"
+                        )} disabled={loading}>
+                            {loading ? <div className="flex items-center min-h-6 gap-2 justify-center w-full"><div className="w-4 h-4 border-2 border-tertiary dark:border-muted-light rounded-full animate-spin"></div></div> : "Verify"}
                         </button>
                     </div>
                 </form>
