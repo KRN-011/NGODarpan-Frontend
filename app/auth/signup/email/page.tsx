@@ -11,11 +11,13 @@ import { cn } from "@/lib/utils";
 import { z } from "zod"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { IoEye, IoEyeOff } from "react-icons/io5";
+import { AnimatePresence, motion } from "framer-motion";
 
 const signupEmailSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
     username: z.string().min(3, { message: "Username must be at least 3 characters long" }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
+    password: z.string().min(8, { message: "Password must be at least 8 characters long" }).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character" }),
     remember: z.boolean().optional(),
 })
 
@@ -27,6 +29,9 @@ export default function SignUpEmailPage() {
     // non-state variables
     const router = useRouter()
     const searchParams = useSearchParams()
+
+    // state variables
+    const [showPassword, setShowPassword] = useState(false)
 
     // form variables
     const { register, handleSubmit, formState: { errors, isSubmitting }, setError, reset, setValue } = useForm<SignupEmailForm>({
@@ -75,6 +80,7 @@ export default function SignUpEmailPage() {
                             "dark:border-muted-dark"
                         )} autoComplete="email" />
                     </div>
+                    {errors.email && <span className="text-red-500 text-xs">{errors.email.message}</span>}
                     <div className="flex flex-col gap-1">
                         <label htmlFor="username">Username</label>
                         <input type="text" {...register("username")} className={cn(
@@ -82,13 +88,42 @@ export default function SignUpEmailPage() {
                             "dark:border-muted-dark"
                         )} autoComplete="username" />
                     </div>
+                    {errors.username && <span className="text-red-500 text-xs">{errors.username.message}</span>}
                     <div className="flex flex-col gap-1">
                         <label htmlFor="password">Password</label>
-                        <input type="password" {...register("password")} className={cn(
-                            "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
-                            "dark:border-muted-dark"
-                        )} autoComplete="new-password" />
+                        <div className="relative">
+                            <input type={showPassword ? "text" : "password"} {...register("password")} className={cn(
+                                "w-full p-2 rounded-md border-2 border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                "dark:border-muted-dark"
+                            )} autoComplete="new-password" />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none" onClick={() => setShowPassword(!showPassword)}>
+                                <AnimatePresence mode="wait" initial={false}>
+                                    {showPassword ? (
+                                        <motion.span
+                                            key="eye"
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <IoEye size={20} />
+                                        </motion.span>
+                                    ) : (
+                                        <motion.span
+                                            key="eyeoff"
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <IoEyeOff size={20} />
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
+                            </span>
+                        </div>
                     </div>
+                    {errors.password && <span className="text-red-500 text-xs">{errors.password.message}</span>}
                     <div className="flex items-center gap-2">
                         <label className="flex items-center cursor-pointer">
                             <input
@@ -107,6 +142,7 @@ export default function SignUpEmailPage() {
                             <span className="ml-2">Remember me</span>
                         </label>
                     </div>
+                    {errors.root && <span className="text-red-500 text-xs">{errors.root.message}</span>}
                     <button type="submit" className={cn(
                         "p-2 w-3/4 mx-auto rounded-md bg-primary text-tertiary cursor-pointer hover:bg-primary-light transition-all duration-300 hover:text-quaternary mt-4",
                         "dark:bg-muted-dark dark:text-primary hover:bg-muted dark:hover:text-quinary",
