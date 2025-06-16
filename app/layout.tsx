@@ -8,7 +8,7 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 import { ThemeProvider } from "@/context/ThemeContext";
 import CustomToastContainer from "@/components/CustomToastContainer";
 import Script from "next/script";
-import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import { LenisProvider } from "@/components/LenisProvider";
 
 export const metadata: Metadata = {
   title: "NGO Darpan",
@@ -28,7 +28,6 @@ export default async function RootLayout({
 
       <body
         className={`preload font-saira antialiased bg-primary dark:bg-muted-dark dark:text-primary transition-all duration-300 flex flex-col min-h-screen`}
-        
       >
         <Script id="remove-preload" strategy="afterInteractive">
           {`
@@ -56,11 +55,11 @@ export default async function RootLayout({
         <NextAuthProvider session={session}>
           <ThemeProvider>
             <Header />
-            <SmoothScrollProvider>
+            <LenisProvider>
               <main className="flex-1">
                 {children}
               </main>
-            </SmoothScrollProvider>
+            </LenisProvider>
             <Footer />
             <CustomToastContainer />
           </ThemeProvider>

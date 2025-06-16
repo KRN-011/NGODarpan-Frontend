@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
+    "@studio-freight/lenis": "^1.0.42",
     "axios": "^1.9.0",
     "framer-motion": "^12.17.0",
     "js-cookie": "^3.0.5",

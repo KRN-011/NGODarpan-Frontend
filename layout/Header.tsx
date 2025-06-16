@@ -3,7 +3,7 @@
 // IMPORTS
 
 // React
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 // Next Features
 import Image from "next/image";
@@ -15,7 +15,7 @@ import { FiAlignRight } from "react-icons/fi";
 import { IoMdMoon, IoMdSunny, IoIosArrowDown, IoMdPerson } from "react-icons/io";
 
 // Framer Motion
-import { motion, AnimatePresence, easeInOut } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 
 // Next Auth
 import { signOut, useSession } from "next-auth/react";
@@ -45,10 +45,14 @@ export default function Header() {
     const authRoutes = ["/auth/login", "/auth/signup"]
     const pathname = usePathname()
     const isLoggedIn = Cookies.get('token')
+    const { scrollY } = useScroll();
+    const lastScrollY = useRef(0);
+    const headerRef = useRef<HTMLDivElement>(null);
 
     // state variables
     const [menuOpen, setMenuOpen] = useState(false)
     const { theme, setTheme } = useTheme();
+    const [showHeader, setShowHeader] = useState(true);
 
     // handle Theme
     const handleTheme = () => {
@@ -79,119 +83,164 @@ export default function Header() {
     // check if the current path is an auth route
     const isAuthRoute = authRoutes.includes(pathname)
 
+    useEffect(() => {
+        if (headerRef.current) {
+            const unsubscribe = scrollY.on("change", (latest) => {
+                if(latest < 0) return;
+                if(latest < lastScrollY.current) {
+                    setShowHeader(true);
+                } else if (latest > lastScrollY.current) {
+                    setShowHeader(false);
+                }
+                lastScrollY.current = latest;
+            });
+            return unsubscribe;
+        }
+    }, [scrollY]);
+
     return (
-        <div className="w-full bg-secondary dark:bg-muted-darker relative transition-all duration-300 min-h-16 z-[99]">
-            <div className="flex justify-between px-20 py-4 items-center [@media(max-width:768px)]:hidden">
-                <div>
-                    <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} className="dark:invert dark:brightness-50" />
-                </div>
-                <div className="flex gap-6">
-                    <Link href="/">Home</Link>
-                    <Link href="/about">About</Link>
-                    <Link href="/contact">Contact</Link>
-                </div>
-                <div className="flex items-center gap-8">
-                    <div className="flex">
-                        <motion.div
-                            onClick={handleTheme}
-                            transition={{ duration: 0.3 }}
-                            className="rounded-3xl h-7 w-12 bg-secondary-dark dark:bg-muted-light transition-all duration-300 flex items-center p-1 cursor-pointer"
-                        >
-                            <motion.div
-                                animate={{ x: theme === "light" ? 0 : "100%", rotate: theme === "dark" ? 0 : 60 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="w-5 h-full bg-primary dark:bg-muted-darker rounded-full flex items-center justify-center"
-                            >
-                                {
-                                    theme === "light" ? (
-                                        <IoMdSunny className="text-yellow-600" />
-                                    ) : (
-                                        <IoMdMoon className="text-white" />
-                                    )
-                                }
-                            </motion.div>
-                        </motion.div>
+        <motion.div
+            ref={headerRef}
+            className="fixed top-0 left-0 w-full z-[99]"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: showHeader ? 0 : -100, opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            exit={{ y: -100, opacity: 0 }}
+        >
+            <div className="w-full bg-secondary dark:bg-muted-darker relative transition-all duration-300 min-h-16 z-[99]">
+                <div className="flex justify-between px-20 py-4 items-center max-md:hidden">
+                    <div>
+                        <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} className="dark:invert dark:brightness-50" />
                     </div>
-                    {
-                        isLoggedIn || session ? (
-                            <div className="flex items-center gap-4">
-                                <div className="relative">
-                                    <motion.div
-                                        whileHover={{ scale: 1.05 }}
-                                        className="flex items-center rounded-full bg-secondary-dark dark:bg-muted-light cursor-pointer p-1 peer"
-                                    >
-                                        <IoMdPerson className="text-primary dark:text-muted-darker z-0" size={23} />
-                                    </motion.div>
-                                    <div className="absolute inset-0 -z-10 flex items-center justify-center peer-hover:translate-y-6 transition-all duration-300">
-                                        <IoIosArrowDown className="text-secondary-dark dark:text-muted-light" size={18} />
+                    <div className="flex gap-6">
+                        <Link href="/">Home</Link>
+                        <Link href="/about">About</Link>
+                        <Link href="/contact">Contact</Link>
+                    </div>
+                    <div className="flex items-center gap-8">
+                        <div className="flex">
+                            <motion.div
+                                onClick={handleTheme}
+                                transition={{ duration: 0.3 }}
+                                className="rounded-3xl h-7 w-12 bg-secondary-dark dark:bg-muted-light transition-all duration-300 flex items-center p-1 cursor-pointer"
+                            >
+                                <motion.div
+                                    animate={{ x: theme === "light" ? 0 : "100%", rotate: theme === "dark" ? 0 : 60 }}
+                                    transition={{ duration: 0.3, ease: "easeOut" }}
+                                    className="w-5 h-full bg-primary dark:bg-muted-darker rounded-full flex items-center justify-center"
+                                >
+                                    {
+                                        theme === "light" ? (
+                                            <IoMdSunny className="text-yellow-600" />
+                                        ) : (
+                                            <IoMdMoon className="text-white" />
+                                        )
+                                    }
+                                </motion.div>
+                            </motion.div>
+                        </div>
+                        {
+                            isLoggedIn || session ? (
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <motion.div
+                                            whileHover={{ scale: 1.05 }}
+                                            className="flex items-center rounded-full bg-secondary-dark dark:bg-muted-light cursor-pointer p-1 peer"
+                                        >
+                                            <IoMdPerson className="text-primary dark:text-muted-darker z-0" size={23} />
+                                        </motion.div>
+                                        <div className="absolute inset-0 -z-10 flex items-center justify-center peer-hover:translate-y-6 transition-all duration-300">
+                                            <IoIosArrowDown className="text-secondary-dark dark:text-muted-light" size={18} />
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
                                 </div>
-                                <button
-                                    onClick={handleLogout}
-                                    className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
-                            </div>
-                        ) : (
-                            <div className={`flex items-center  ${isAuthRoute ? "hidden" : ""}`}>
-                                <Link href="/auth/login" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute  before:right-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Login</Link>
-                                <div className="h-6 w-[1px] bg-tertiary"></div>
-                                <Link href="/auth/signup" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:left-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Signup</Link>
+                            ) : (
+                                <div className={`flex items-center  ${isAuthRoute ? "hidden" : ""}`}>
+                                    <Link href="/auth/login" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute  before:right-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Login</Link>
+                                    <div className="h-6 w-[1px] bg-tertiary"></div>
+                                    <Link href="/auth/signup" className={`px-3 relative hover:text-primary transition-all duration-300 z-10 before:content-[''] before:w-0 before:h-6 before:bg-tertiary before:absolute before:left-0 before:top-0 before:transition-all before:duration-300 before:ease-in-out hover:before:w-full before:-z-10`}>Signup</Link>
+                                </div>
+                            )
+                        }
+                    </div>
+                </div>
+
+                {/* Mobile Menu */}
+                <div className="flex justify-between px-5 py-5 items-center md:hidden">
+                    <div>
+                        <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} className="max-sm:w-16" />
+                    </div>
+                    <div className="flex gap-4 items-center">
+                        <div className="flex">
+                            <motion.div
+                                onClick={handleTheme}
+                                transition={{ duration: 0.3 }}
+                                className="rounded-3xl h-6 w-10 bg-secondary-dark dark:bg-muted-light transition-all duration-300 flex items-center p-1 cursor-pointer"
+                            >
+                                <motion.div
+                                    animate={{ x: theme === "light" ? 0 : "100%", rotate: theme === "dark" ? 0 : 60 }}
+                                    transition={{ duration: 0.3, ease: "easeOut" }}
+                                    className="w-4 h-full bg-primary dark:bg-muted-darker rounded-full flex items-center justify-center"
+                                >
+                                    {
+                                        theme === "light" ? (
+                                            <IoMdSunny style={{ fontSize: "12px" }} className="text-yellow-600" />
+                                        ) : (
+                                            <IoMdMoon style={{ fontSize: "12px" }} className="text-white" />
+                                        )
+                                    }
+                                </motion.div>
+                            </motion.div>
+                        </div>
+                        <FiAlignRight className="text-tertiary" size={20} onClick={() => setMenuOpen(!menuOpen)} />
+                    </div>
+                </div>
+
+                {/* Mobile Menu Content */}
+                <AnimatePresence>
+                    {
+                        menuOpen && (
+                            <div className="absolute origin-bottom mt-7 w-full z-50 md:hidden">
+                                <motion.div
+                                    initial={{ opacity: 0, y: -20, scale: 0.95, borderRadius: 0 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1, borderRadius: 15 }}
+                                    transition={{ duration: 0.3 }}
+                                    exit={{ opacity: 0, y: -20, scale: 0.95, borderRadius: 0 }}
+                                    className="min-w-3xs py-4 bg-secondary-light dark:bg-muted-light place-self-end mr-5"
+                                >
+                                    <div className="flex flex-col gap-4 p-4 items-center text-sm md:text-base text-primary dark:text-muted-darker">
+                                        <Link href="/">Home</Link>
+                                        <div className="h-[1px] w-1/3 mx-auto bg-tertiary dark:bg-muted-darker"></div>
+                                        <Link href="/about">About</Link>
+                                        <div className="h-[1px] w-1/2 mx-auto bg-tertiary dark:bg-muted-darker"></div>
+                                        <Link href="/contact">Contact</Link>
+                                        <div className={`h-[1px] w-1/2 mx-auto bg-tertiary dark:bg-muted-darker ${isAuthRoute ? "hidden" : ""}`}></div>
+                                        {
+                                            isLoggedIn || session ? (
+                                                <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
+                                                    <button
+                                                        onClick={() => {
+                                                            handleLogout()
+                                                        }}>Logout</button>
+                                                </div>
+                                            ) : (
+                                                <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
+                                                    <Link href="/login">Login</Link>
+                                                    <div className="h-10 w-[1px] bg-tertiary"></div>
+                                                    <Link href="/signup">Signup</Link>
+                                                </div>
+                                            )
+                                        }
+                                    </div>
+                                </motion.div>
                             </div>
                         )
                     }
-                </div>
+                </AnimatePresence>
             </div>
-
-            {/* Mobile Menu */}
-            <div className="flex justify-between px-10 py-4 items-center md:hidden">
-                <div>
-                    <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} className="max-sm:w-20" />
-                </div>
-                <div>
-                    <FiAlignRight className="text-tertiary" size={24} onClick={() => setMenuOpen(!menuOpen)} />
-                </div>
-            </div>
-
-            {/* Mobile Menu Content */}
-            <AnimatePresence>
-                {
-                    menuOpen && (
-                        <div className="absolute origin-bottom mt-7 left-0 w-full z-50 md:hidden">
-                            <motion.div
-                                initial={{ opacity: 0, y: -20, scale: 0.95, borderRadius: 0 }}
-                                animate={{ opacity: 1, y: 0, scale: 1, borderRadius: 15 }}
-                                transition={{ duration: 0.3 }}
-                                exit={{ opacity: 0, y: -20, scale: 0.95, borderRadius: 0 }}
-                                className="max-w-3xs mx-auto py-4 bg-secondary"
-                            >
-                                <div className="flex flex-col gap-4 p-4 items-center">
-                                    <Link href="/">Home</Link>
-                                    <div className="h-[1px] w-1/3 mx-auto bg-tertiary"></div>
-                                    <Link href="/about">About</Link>
-                                    <div className="h-[1px] w-1/2 mx-auto bg-tertiary"></div>
-                                    <Link href="/contact">Contact</Link>
-                                    <div className="h-[1px] w-1/2 mx-auto bg-tertiary"></div>
-                                    {
-                                        isLoggedIn || session ? (
-                                            <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
-                                                <button
-                                                    onClick={() => {
-                                                        handleLogout()
-                                                    }}>Logout</button>
-                                            </div>
-                                        ) : (
-                                            <div className={`flex gap-4 items-center ${isAuthRoute ? "hidden" : ""}`}>
-                                                <Link href="/login">Login</Link>
-                                                <div className="h-10 w-[1px] bg-tertiary"></div>
-                                                <Link href="/signup">Signup</Link>
-                                            </div>
-                                        )
-                                    }
-                                </div>
-                            </motion.div>
-                        </div>
-                    )
-                }
-            </AnimatePresence>
-        </div>
+        </motion.div>
     )
 }

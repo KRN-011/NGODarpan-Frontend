@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { motion, useTransform } from "framer-motion"
+import { useLenisScroll } from "@/components/LenisProvider";
 
 const images = [
     { image: "/home-page-images/1.jpg", position: { x: 750, y: 0, rotate: 10, width: 400, height: 400 } },
@@ -16,12 +17,10 @@ const images = [
 
 export default function SlidingImages() {
 
-    const { scrollYProgress } = useScroll();
+    const scrollY = useLenisScroll();
 
-    const yScroll = useTransform(scrollYProgress, [0, 1], [0, -1000]);
-    const yOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-    console.log(scrollYProgress);
+    const yScroll = useTransform(scrollY, [0, 1000], [0, -1000]);
+    const yOpacity = useTransform(scrollY, [0, 450], [1, 0]);
 
     return (
         <div className="h-screen w-full relative  z-10">
@@ -35,7 +34,7 @@ export default function SlidingImages() {
                             initial={{ opacity: 0, scale: 0.5, x: 0, y: 0, rotate: 0 }}
                             animate={{ opacity: 1, scale: 1, x: image.position.x, y: image.position.y, rotate: image.position.rotate }}
                             exit={{ opacity: 0, scale: 0.5, x: image.position.x, y: image.position.y, rotate: image.position.rotate }}
-                            transition={{ duration: 0.5, opacity: { delay: 1 }, scale: { delay: 1 }, x: { delay: 1, duration: 1 }, y: { delay: 1, duration: 1 }, rotate: { delay: 1, duration: 1 }, ease: "easeOut" }}
+                            transition={{ duration: 0.5, opacity: { delay: 1 }, scale: { delay: 1 }, x: { delay: 1, duration: 0.75 }, y: { delay: 1, duration: 0.75 }, rotate: { delay: 1, duration: 0.75 }, ease: "easeOut" }}
                             style={{
                                 // This is the key: add the scroll-based y to the base y position
                                 y: useTransform(yScroll, scrollY => image.position.y + scrollY),
