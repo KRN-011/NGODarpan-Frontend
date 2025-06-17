@@ -36,7 +36,8 @@ import { cn } from "@/lib/utils";
 
 
 
-
+// Create a custom event name
+const USER_UPDATED_EVENT = 'userUpdated';
 
 
 export default function Header() {
@@ -100,11 +101,24 @@ export default function Header() {
 
     // get user profile
     useEffect(() => {
-        const user = Cookies.get('user')
-        if (user) {
-            setUser(JSON.parse(user))
-        }
-    }, [isLoggedIn])
+        const handleUserUpdate = () => {
+            const cookieUser = Cookies.get('user');
+            if (cookieUser) {
+                setUser(JSON.parse(cookieUser));
+            }
+        };
+
+        // Initial load
+        handleUserUpdate();
+
+        // Listen for user updates
+        window.addEventListener(USER_UPDATED_EVENT, handleUserUpdate);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdate);
+        };
+    }, []);
     
     return (
         <motion.div
@@ -152,13 +166,13 @@ export default function Header() {
                                         <motion.div
                                             whileHover={{ scale: 1.05 }}
                                             className={cn(`
-                                                flex items-center rounded-full  cursor-pointer p-1 peer`, 
-                                                user?.profile?.profileImage ? "bg-muted-dark" : "bg-secondary-dark dark:bg-muted-light"
+                                                flex items-center rounded-full cursor-pointer p-1 peer w-8 h-8 relative overflow-hidden transition-all duration-10 0 ease-out border-0 hover:border-2 border-quaternary`, 
+                                                user?.profile?.profileImage ? "bg-secondary-dark dark:bg-muted-dark " : "bg-secondary-dark dark:bg-muted-light"
                                             )}
                                         >
                                             {
                                                 user?.profile?.profileImage ? (
-                                                    <Image src={user?.profile?.profileImage} alt="Profile" width={23} height={23} className="rounded-full object-cover" />
+                                                    <Image src={user?.profile?.profileImage} alt="Profile" fill className="rounded-full object-cover" />
                                                 ) : (
                                                     <IoMdPerson className="text-primary dark:text-muted-darker z-0" size={23} />
                                                 )
@@ -257,3 +271,8 @@ export default function Header() {
         </motion.div>
     )
 }
+
+// Dispatch user update event
+export const dispatchUserUpdate = () => {
+    window.dispatchEvent(new Event(USER_UPDATED_EVENT));
+};

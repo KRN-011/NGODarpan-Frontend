@@ -6,12 +6,14 @@ import { z } from "zod"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
-import { IoMdPerson } from "react-icons/io";
+import { IoMdPerson, IoMdTrash } from "react-icons/io";
 import { updateProfile, uploadImage } from "@/lib/api";
 import { CldUploadWidget } from 'next-cloudinary';
 import Image from "next/image";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import { dispatchUserUpdate } from "@/layout/Header";
 
 
 const profileSchema = z.object({
@@ -26,7 +28,18 @@ const profileSchema = z.object({
             const date = new Date(val);
             return !isNaN(date.getTime()) && date <= new Date();
         },
-        { message: "Date of birth must be a valid date in the past" }),
+        { message: "Date of birth must be a valid date in the past" }).refine((val) => {
+            const date = new Date(val);
+            const today = new Date();
+            const age = today.getFullYear() - date.getFullYear();
+            const monthDiff = today.getMonth() - date.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+                age - 1;
+            }
+
+            return age >= 18;
+        }, { message: "You must be at least 18 years old" }),
     profileVisibility: z.enum(["YES", "NO"], { message: "Profile visibility is required" }),
     gender: z.enum(["MALE", "FEMALE"], { message: "Gender is required" }),
     country: z.string().min(1, { message: "Country is required" }),
@@ -36,25 +49,28 @@ const profileSchema = z.object({
 })
 
 type ProfileForm = z.infer<typeof profileSchema>;
+
 export default function Profile() {
+
+    // non-state variables
+    const router = useRouter();
 
     // state variables
     const [user, setUser] = useState<any>(null)
     const [profileImage, setProfileImage] = useState<string | null>(null);
-
 
     // handle profile image change
     const handleProfileImageChange = (result: any) => {
         console.log(result);
         if (result) {
             // Store the Cloudinary URL
-            const imageUrl = result.info.secure_url;            
+            const imageUrl = result.info.secure_url;
             setProfileImage(imageUrl);
         }
     }
 
     // form variables
-    const { register, handleSubmit, formState: { errors, isSubmitting }, setError } = useForm<ProfileForm>({
+    const { register, handleSubmit, formState: { errors, isSubmitting }, setError, setValue } = useForm<ProfileForm>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
             firstname: user?.profile?.firstname || "",
@@ -63,7 +79,9 @@ export default function Profile() {
             secondaryEmail: user?.profile?.secondaryEmail || "",
             phoneNumber: user?.profile?.phoneNumber || "",
             secondaryPhoneNumber: user?.profile?.secondaryPhoneNumber || "",
-            dateOfBirth: user?.profile?.dateOfBirth || "",
+            dateOfBirth: user?.profile?.dateOfBirth
+                ? new Date(user.profile.dateOfBirth).toISOString().split('T')[0]
+                : "",
             profileVisibility: user?.profile?.profileVisibility || "YES",
             gender: user?.profile?.gender || "MALE",
             country: user?.profile?.country || "",
@@ -73,8 +91,23 @@ export default function Profile() {
         }
     })
 
-    console.log(user);
-    
+    useEffect(() => {
+        setValue("firstname", user?.profile?.firstname || "");
+        setValue("lastname", user?.profile?.lastname || "");
+        setValue("email", user?.email || "");
+        setValue("secondaryEmail", user?.profile?.secondaryEmail || "");
+        setValue("phoneNumber", user?.profile?.phoneNumber || "");
+        setValue("secondaryPhoneNumber", user?.profile?.secondaryPhoneNumber || "");
+        setValue("dateOfBirth", user?.profile?.dateOfBirth
+            ? new Date(user.profile.dateOfBirth).toISOString().split('T')[0]
+            : "");
+        setValue("profileVisibility", user?.profile?.profileVisibility ? "YES" : "NO");
+        setValue("gender", user?.profile?.gender || "MALE");
+        setValue("country", user?.profile?.country || "");
+        setValue("pincode", user?.profile?.pincode || "");
+        setValue("bio", user?.profile?.bio || "");
+        setValue("address", user?.profile?.address || "");
+    }, [user])
 
     const onSubmit = async (data: ProfileForm) => {
         try {
@@ -82,9 +115,9 @@ export default function Profile() {
                 setError("root", { message: "Profile image is required" });
                 return;
             }
-            
+
             const imageResponse = await uploadImage(profileImage);
-            
+
             const profileResponse = await updateProfile(data);
 
             if (imageResponse.success && profileResponse.success) {
@@ -95,10 +128,10 @@ export default function Profile() {
                 }
                 setUser(updatedUser);
                 Cookies.set('user', JSON.stringify(updatedUser));
+                dispatchUserUpdate(); // Dispatch user update event for Header
             }
 
         } catch (error: any) {
-            console.log(error);
             toast.error(error?.response?.data?.message || "Something went wrong");
         }
     }
@@ -117,7 +150,7 @@ export default function Profile() {
             setProfileImage(user?.profile?.profileImage)
         }
     }, [user])
-    
+
     return (
         <ProfileLayout>
             <div className="text-sm md:text-base dark:text-muted-light">
@@ -125,17 +158,17 @@ export default function Profile() {
                 <div className="w-full h-[1px] bg-muted-light dark:bg-muted my-5" />
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 px-10 max-md:max-w-md mx-auto">
                     <div className="flex items-center gap-4">
-                        <div className="flex justify-center gap-1 w-28 h-28 mx-auto relative bg-muted-light dark:bg-muted-darker rounded-full cursor-pointer overflow-hidden">
+                        <div className="flex justify-center gap-1 w-28 h-28 mx-auto relative bg-muted-light dark:bg-muted-darker rounded-full cursor-pointer border-2 border-transparent hover:border-quaternary transition-all duration-300 ease-out overflow-hidden">
                             <CldUploadWidget
                                 uploadPreset="ngo-darpan"
                                 onSuccess={handleProfileImageChange}
                             >
                                 {({ open }) => (
-                                    <div className={`flex justify-center items-center gap-1 w-28 h-28 mx-auto relative bg-muted-light dark:bg-muted-darker rounded-full cursor-pointer ${profileImage ? 'hidden' : ''}`}
+                                    <div className={`flex justify-center items-center gap-1 w-28 h-28 mx-auto relative bg-muted-light dark:bg-muted-darker z-10 rounded-full cursor-pointer`}
                                         onClick={() => open()}>
                                         {
-                                            user?.profile?.profileImage ? (
-                                                <Image src={user?.profile?.profileImage} alt="profile" fill className="object-cover" />
+                                            profileImage ? (
+                                                <Image src={profileImage} alt="profile" fill className="object-cover " />
                                             ) : (
                                                 <IoMdPerson className="text-primary dark:text-muted z-0" size={60} />
                                             )
@@ -143,50 +176,84 @@ export default function Profile() {
                                     </div>
                                 )}
                             </CldUploadWidget>
-                            {profileImage && <Image src={profileImage as unknown as string} alt="profile" fill className="object-cover" />}
                         </div>
                     </div>
                     {errors.root && <p className="text-red-500 text-sm bottom-0  text-center">{errors.root.message}</p>}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="firstname">First Name</label>
-                            <input type="text" id="firstname" className="p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("firstname")} />
+                            <input type="text" id="firstname"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("firstname")} />
                             {errors.firstname && <p className="text-red-500 text-sm">{errors.firstname.message}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
                             <label htmlFor="lastname">Last Name</label>
-                            <input type="text" id="lastname" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("lastname")} />
+                            <input type="text" id="lastname"
+                                    className={cn(
+                                        "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                        "dark:border-muted-darker text-sm md:text-base"
+                                    )}
+                                    {...register("lastname")} />
                             {errors.lastname && <p className="text-red-500 text-sm">{errors.lastname.message}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="email">Email</label>
-                            <input type="email" id="email" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("email")} />
+                            <input type="email" id="email"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("email")} />
                             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
                             <label htmlFor="secondaryEmail">Secondary Email</label>
-                            <input type="email" id="secondaryEmail" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("secondaryEmail")} />
+                            <input type="email" id="secondaryEmail"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("secondaryEmail")} />
                             {errors.secondaryEmail && <p className="text-red-500 text-sm">{errors.secondaryEmail.message}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="phone">Phone</label>
-                            <input type="text" id="phone" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("phoneNumber")} />
+                            <input type="text" id="phone"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("phoneNumber")} />
                             {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
                             <label htmlFor="secondaryPhone">Secondary Phone</label>
-                            <input type="text" id="secondaryPhone" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("secondaryPhoneNumber")} />
+                            <input type="text" id="secondaryPhone"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("secondaryPhoneNumber")} />
                             {errors.secondaryPhoneNumber && <p className="text-red-500 text-sm">{errors.secondaryPhoneNumber.message}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="dateOfBirth">Date of Birth</label>
-                            <input type="date" id="dateOfBirth" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("dateOfBirth")} />
+                            <input type="date" id="dateOfBirth"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("dateOfBirth")} />
                             {errors.dateOfBirth && <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>}
                         </div>
                         <div className="flex flex-col gap-3 mt-3">
@@ -222,24 +289,44 @@ export default function Profile() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="country">Country</label>
-                            <input type="text" id="country" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("country")} />
+                            <input type="text" id="country"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("country")} />
                             {errors.country && <p className="text-red-500 text-sm">{errors.country.message}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
                             <label htmlFor="pincode">Pincode</label>
-                            <input type="text" id="pincode" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" {...register("pincode")} />
+                            <input type="text" id="pincode"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                {...register("pincode")} />
                             {errors.pincode && <p className="text-red-500 text-sm">{errors.pincode.message}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="bio">Bio</label>
-                            <textarea id="bio" className="w-full p-2 rounded-md border border-muted-light dark:border-muted-darker" rows={3} {...register("bio")} />
+                            <textarea id="bio"
+                                className={cn(
+                                    "w-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                rows={3} {...register("bio")} />
                             {errors.bio && <p className="text-red-500 text-sm">{errors.bio.message}</p>}
                         </div>
                         <div className="flex flex-col gap-1">
                             <label htmlFor="address">Address</label>
-                            <textarea id="address" className="w-full h-full p-2 rounded-md border border-muted-light dark:border-muted-darker" rows={2} {...register("address")} />
+                            <textarea id="address"
+                                className={cn(
+                                    "w-full h-full p-2 rounded-md border border-muted focus:outline-none focus:border-quaternary transition-all duration-300",
+                                    "dark:border-muted-darker text-sm md:text-base"
+                                )}
+                                rows={2} {...register("address")} />
                             {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
                         </div>
                     </div>
