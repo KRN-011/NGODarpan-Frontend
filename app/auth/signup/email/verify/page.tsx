@@ -81,11 +81,8 @@ export default function VerifyPage() {
             const response = await verifyUser(otp.join(""), Cookies.get("token") as string)
 
             if (response.success) {
-                toast.success("OTP verified successfully", {
-                    onClose: () => {
-                        router.push("/auth/login")
-                    }
-                })
+                toast.success("OTP verified successfully")
+                router.push("/auth/login")
             }
         } catch (error: any) {
             toast.error(error.response.data.message)

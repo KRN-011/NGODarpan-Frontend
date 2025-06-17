@@ -29,6 +29,7 @@ import { useTheme } from "@/context/ThemeContext";
 // Packages
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
 
 
 
@@ -53,6 +54,7 @@ export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false)
     const { theme, setTheme } = useTheme();
     const [showHeader, setShowHeader] = useState(true);
+    const [user, setUser] = useState<any>(null)
 
     // handle Theme
     const handleTheme = () => {
@@ -68,11 +70,8 @@ export default function Header() {
                 if (response.success) {
                     Cookies.remove('token')
                     Cookies.remove('user')
-                    toast.success(response.message, {
-                        onClose: () => {
-                            signOut({ callbackUrl: '/auth/login?redirect=true&from=logout' })
-                        }
-                    })
+                    toast.success(response.message)
+                    signOut({ callbackUrl: '/auth/login?redirect=true&from=logout' })
                 }
             } catch (error: any) {
                 toast.error(error.response.data.message)
@@ -83,6 +82,7 @@ export default function Header() {
     // check if the current path is an auth route
     const isAuthRoute = authRoutes.includes(pathname)
 
+    // auto hide animation logic
     useEffect(() => {
         if (headerRef.current) {
             const unsubscribe = scrollY.on("change", (latest) => {
@@ -98,6 +98,14 @@ export default function Header() {
         }
     }, [scrollY]);
 
+    // get user profile
+    useEffect(() => {
+        const user = Cookies.get('user')
+        if (user) {
+            setUser(JSON.parse(user))
+        }
+    }, [isLoggedIn])
+    
     return (
         <motion.div
             ref={headerRef}
@@ -114,8 +122,6 @@ export default function Header() {
                     </div>
                     <div className="flex gap-6">
                         <Link href="/">Home</Link>
-                        <Link href="/about">About</Link>
-                        <Link href="/contact">Contact</Link>
                     </div>
                     <div className="flex items-center gap-8">
                         <div className="flex">
@@ -142,17 +148,26 @@ export default function Header() {
                         {
                             isLoggedIn || session ? (
                                 <div className="flex items-center gap-4">
-                                    <div className="relative">
+                                    <Link href="/profile" className="relative">
                                         <motion.div
                                             whileHover={{ scale: 1.05 }}
-                                            className="flex items-center rounded-full bg-secondary-dark dark:bg-muted-light cursor-pointer p-1 peer"
+                                            className={cn(`
+                                                flex items-center rounded-full  cursor-pointer p-1 peer`, 
+                                                user?.profile?.profileImage ? "bg-muted-dark" : "bg-secondary-dark dark:bg-muted-light"
+                                            )}
                                         >
-                                            <IoMdPerson className="text-primary dark:text-muted-darker z-0" size={23} />
+                                            {
+                                                user?.profile?.profileImage ? (
+                                                    <Image src={user?.profile?.profileImage} alt="Profile" width={23} height={23} className="rounded-full object-cover" />
+                                                ) : (
+                                                    <IoMdPerson className="text-primary dark:text-muted-darker z-0" size={23} />
+                                                )
+                                            }
                                         </motion.div>
                                         <div className="absolute inset-0 -z-10 flex items-center justify-center peer-hover:translate-y-6 transition-all duration-300">
                                             <IoIosArrowDown className="text-secondary-dark dark:text-muted-light" size={18} />
                                         </div>
-                                    </div>
+                                    </Link>
                                     <button
                                         onClick={handleLogout}
                                         className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
@@ -214,9 +229,7 @@ export default function Header() {
                                     <div className="flex flex-col gap-4 p-4 items-center text-sm md:text-base text-primary dark:text-muted-darker">
                                         <Link href="/">Home</Link>
                                         <div className="h-[1px] w-1/3 mx-auto bg-tertiary dark:bg-muted-darker"></div>
-                                        <Link href="/about">About</Link>
-                                        <div className="h-[1px] w-1/2 mx-auto bg-tertiary dark:bg-muted-darker"></div>
-                                        <Link href="/contact">Contact</Link>
+                                        <Link href="/profile">Profile</Link>
                                         <div className={`h-[1px] w-1/2 mx-auto bg-tertiary dark:bg-muted-darker ${isAuthRoute ? "hidden" : ""}`}></div>
                                         {
                                             isLoggedIn || session ? (

@@ -44,11 +44,8 @@ export default function LoginPage() {
             const response = await loginUser(data);
 
             if (response.success) {
-                toast.success(response.message, {
-                    onClose: () => {
-                        router.push("/")
-                    }
-                })
+                toast.success(response.message)
+                router.push("/")
             }
         } catch (error: any) {
             toast.error(error.response.data.message)

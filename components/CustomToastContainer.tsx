@@ -16,6 +16,8 @@ export default function CustomToastContainer() {
             draggable
             pauseOnHover
             theme={theme === "light" ? "light" : "dark"}
-        />
+            style={{ zIndex: 99999 }}
+            className="!fixed"
+        /> 
     );
 }

@@ -34,6 +34,8 @@ export const loginUser = async (data: any) => {
         if (response.data.success) {
             Cookies.set("token", response.data.data.token);
             Cookies.set("user", JSON.stringify(response.data.data.user));
+            console.log(response.data.data.user);
+            
         }
 
         return response.data;
@@ -86,3 +88,46 @@ export const logoutUserWithSocialMedia = async () => {
         throw error;
     }
 };
+
+// ===================================================
+// Profile
+// ===================================================
+
+export const updateProfile = async (data: any) => {
+    try {
+        const response = await axios.post(`${API_URL}/profile/update`, data, {
+            headers: {
+                Authorization: `Bearer ${JWT_TOKEN}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getProfile = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/profile`, {
+            headers: {
+                Authorization: `Bearer ${JWT_TOKEN}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const uploadImage = async (data: any) => {
+    try {
+        const response = await axios.post(`${API_URL}/miscellaneous/upload-image`, {image: data}, {  
+            headers: {
+                Authorization: `Bearer ${JWT_TOKEN}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}

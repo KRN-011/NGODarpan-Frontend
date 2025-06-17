@@ -56,19 +56,11 @@ export default function SignUpEmailPage() {
 
             if (response.success) {
                 if (response?.data?.updatedUser?.verified || response?.data?.user?.verified) {
-                    toast.success(response?.message, {
-                        onClose: () => {
-                            router.push("/auth/login");
-                        },
-                        autoClose: 1500,
-                    })
+                    toast.success(response?.message)
+                    router.push("/auth/login"); 
                 } else {
-                    toast.success("OTP sent to your email", {
-                        onClose: () => {
-                            router.push("/auth/signup/email/verify?email=" + encodeURIComponent(data.email));
-                        },
-                        autoClose: 1500,
-                    });
+                    toast.success("OTP sent to your email")
+                    router.push("/auth/signup/email/verify?email=" + encodeURIComponent(data.email));
                 }
             }
         } catch (error: any) {
