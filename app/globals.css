@@ -5,31 +5,48 @@
 @import "tailwindcss";
 
 @theme {
-  
-  /* Custom Colors */
-  --color-primary: #EAE7DC;
-  --color-secondary: #D8C3A5;
-  --color-tertiary: #8E8D8A;
-  --color-quaternary: #E98074;
-  --color-quinary: #E85A4F;
-  --color-muted: #99a1af;
-  --color-muted-light: #b8bdc7;
-  --color-muted-dark: #5c6169;
-  --color-muted-darker: #2e3034;
-  --color-secondary-light: #e4d5c0;
-  --color-primary-light: #f5f3ee;
-  --color-primary-dark: #bbb9b0;
-  --color-secondary-dark: #978973;
 
-  /* Custom Fonts */
+  /** Custom Colors */
+  --color-primary: #EAE7DC;             /* Base background */
+  --color-primary-dark: #BBB9B0;        /* Subtle contrast background */
+  --color-primary-light: #F9F8F5;       /* Extra soft background */
+
+  --color-secondary: #D8C3A5;           /* Admin card backgrounds */
+  --color-secondary-light: #EFE1D3;     /* Hover state or soft cards */
+  --color-secondary-dark: #978973;      /* Chart labels, neutral headers */
+
+  --color-tertiary: #8E8D8A;            /* Neutral text/icons */
+  --color-quaternary: #E98074;          /* Buttons, highlights */
+  --color-quinary: #E85A4F;             /* Alerts, CTA */
+
+  --color-accent-blue: #4A90E2;         /* For social feeds: likes, links, buttons */
+  --color-accent-green: #6FCF97;
+  --color-accent-purple: #A27DD8;       /* Success, positive stats, impact indicators */
+  --color-accent-yellow: #F2C94C;       /* For user-centric or NGO-specific highlights */
+  --color-accent-red: #E85A4F;          /* Attention, badges, shared posts */
+
+  --color-muted: #99A1AF;               /* Muted text */
+  --color-muted-light: #C5CAD3;         /* Placeholder, borders */
+  --color-muted-dark: #5C6169;          /* Label text */
+  --color-muted-darker: #2E3034;        /* Headers, dark backgrounds */
+
+  --color-error: #EB5757;               /* Delete, warning */
+  --color-success: #27AE60;             /* Success alerts */
+
+  --color-bg: #F9F9F9;                  /* Universal app bg */
+  --color-bg-dark: #1E1E1E;             /* Optional dark mode bg */
+
+
+
+  /** Custom Fonts */
   --font-saira: 'Saira', sans-serif;
 
-  /* Custom Breakpoints */
+  /** Custom Breakpoints */
   --breakpoint-sm: 425px;
 
 }
 
-/* Theme settings */
+/** Theme settings */
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -43,7 +60,7 @@
 
 
 
-/* Adding custom classes */
+/** Adding custom classes */
 
 .preload {
   visibility: hidden;

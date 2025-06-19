@@ -70,7 +70,7 @@ export default function SignUpEmailPage() {
     }
 
     return (
-        <div className="flex justify-center w-full h-full items-center py-20 md:py-40 px-5">
+        <div className="flex justify-center w-full h-full items-center">
             <div className="bg-secondary-light dark:bg-muted-darker p-7 md:p-10 w-md rounded-3xl">
                 <h1 className="text-xl md:text-2xl font-bold text-center">SignUp with Email</h1>
                 <form action="" className="flex flex-col gap-4 mt-10" onSubmit={handleSubmit(onSubmit)}>

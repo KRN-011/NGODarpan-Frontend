@@ -8,7 +8,7 @@ import React, { useEffect, useState, useRef } from "react";
 // Next Features
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 // React Icons
 import { FiAlignRight } from "react-icons/fi";
@@ -44,12 +44,13 @@ export default function Header() {
 
     // non-state variables
     const { data: session } = useSession()
-    const authRoutes = ["/auth/login", "/auth/signup"]
+    const authRoutes = ["/auth/login", "/auth/signup", "/auth/signup/ngo"]
     const pathname = usePathname()
     const isLoggedIn = Cookies.get('token')
     const { scrollY } = useScroll();
     const lastScrollY = useRef(0);
     const headerRef = useRef<HTMLDivElement>(null);
+    const router = useRouter()
 
     // state variables
     const [menuOpen, setMenuOpen] = useState(false)
@@ -72,7 +73,8 @@ export default function Header() {
                     Cookies.remove('token')
                     Cookies.remove('user')
                     toast.success(response.message)
-                    signOut({ callbackUrl: '/auth/login?redirect=true&from=logout' })
+                    signOut({ redirect: false })
+                    router.push('/auth/login?redirect=true&from=logout')
                 }
             } catch (error: any) {
                 toast.error(error.response.data.message)
@@ -87,8 +89,8 @@ export default function Header() {
     useEffect(() => {
         if (headerRef.current) {
             const unsubscribe = scrollY.on("change", (latest) => {
-                if(latest < 0) return;
-                if(latest < lastScrollY.current) {
+                if (latest < 0) return;
+                if (latest < lastScrollY.current) {
                     setShowHeader(true);
                 } else if (latest > lastScrollY.current) {
                     setShowHeader(false);
@@ -119,17 +121,17 @@ export default function Header() {
             window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdate);
         };
     }, []);
-    
+
     return (
         <motion.div
             ref={headerRef}
-            className="fixed top-0 left-0 w-full z-[99]"
+            className="top-0 left-0 mx-3"
             initial={{ y: 0, opacity: 1 }}
             animate={{ y: showHeader ? 0 : -100, opacity: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             exit={{ y: -100, opacity: 0 }}
         >
-            <div className="w-full bg-secondary dark:bg-muted-darker relative transition-all duration-300 min-h-16 z-[99]">
+            <div className="w-full bg-secondary dark:bg-muted-darker relative transition-all duration-300 min-h-16 z-[99] rounded-br-2xl rounded-bl-2xl">
                 <div className="flex justify-between px-20 py-4 items-center max-md:hidden">
                     <div>
                         <Image src="/logo.png" alt="NGO Darpan Logo" width={100} height={100} className="dark:invert dark:brightness-50" />
@@ -138,7 +140,10 @@ export default function Header() {
                         <Link href="/">Home</Link>
                     </div>
                     <div className="flex items-center gap-8">
-                        <div className="flex">
+                        <div className="flex items-center gap-6">
+                            <Link href={'/'} className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:font-semibold hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>
+                                NGO Owner ?
+                            </Link>
                             <motion.div
                                 onClick={handleTheme}
                                 transition={{ duration: 0.3 }}
@@ -166,7 +171,7 @@ export default function Header() {
                                         <motion.div
                                             whileHover={{ scale: 1.05 }}
                                             className={cn(`
-                                                flex items-center rounded-full cursor-pointer p-1 peer w-8 h-8 relative overflow-hidden transition-all duration-10 0 ease-out border-0 hover:border-2 border-quaternary`, 
+                                                flex items-center rounded-full cursor-pointer p-1 peer w-8 h-8 relative overflow-hidden transition-all duration-10 0 ease-out border-0 hover:border-2 border-quaternary`,
                                                 user?.profile?.profileImage ? "bg-secondary-dark dark:bg-muted-dark " : "bg-secondary-dark dark:bg-muted-light"
                                             )}
                                         >
@@ -184,7 +189,7 @@ export default function Header() {
                                     </Link>
                                     <button
                                         onClick={handleLogout}
-                                        className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
+                                        className={`cursor-pointer z-10 px-3 transition-all duration-300 hover:font-semibold hover:text-primary dark:hover:text-muted-dark relative before:content-[''] before:w-full before:h-0 before:bg-tertiary dark:before:bg-muted-light before:absolute before:bottom-0 before:left-0 before:transition-all before:duration-300 before:ease-in-out hover:before:h-6 before:-z-10 ${isAuthRoute ? "hidden" : ""}`}>Logout</button>
                                 </div>
                             ) : (
                                 <div className={`flex items-center  ${isAuthRoute ? "hidden" : ""}`}>

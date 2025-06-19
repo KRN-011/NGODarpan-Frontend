@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/layout/Header";
-import Footer from "@/layout/Footer";
 import { NextAuthProvider } from "@/lib/providers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
@@ -23,11 +22,12 @@ export default async function RootLayout({
 
   const session = await getServerSession(authOptions);
 
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="h-full" suppressHydrationWarning>
 
       <body
-        className={`preload font-saira antialiased bg-primary dark:bg-muted-dark dark:text-primary transition-all duration-300 flex flex-col min-h-screen`}
+        className={`preload font-saira antialiased bg-bg dark:bg-bg-dark dark:text-primary transition-all duration-300 flex flex-col h-full min-h-screen`}
       >
         <Script id="remove-preload" strategy="afterInteractive">
           {`
@@ -56,11 +56,10 @@ export default async function RootLayout({
           <ThemeProvider>
             <Header />
             <LenisProvider>
-              <main className="flex-1 pt-16">
+              <main className="h-full">
                 {children}
               </main>
             </LenisProvider>
-            <Footer />
             <CustomToastContainer />
           </ThemeProvider>
         </NextAuthProvider>

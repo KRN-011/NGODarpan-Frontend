@@ -61,7 +61,6 @@ export default function Profile() {
 
     // handle profile image change
     const handleProfileImageChange = (result: any) => {
-        console.log(result);
         if (result) {
             // Store the Cloudinary URL
             const imageUrl = result.info.secure_url;

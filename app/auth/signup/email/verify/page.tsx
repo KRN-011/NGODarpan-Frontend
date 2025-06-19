@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "react-toastify"
 import Cookies from "js-cookie"
 import { cn } from "@/lib/utils"
+import { dispatchUserUpdate } from "@/layout/Header"
 
 export default function VerifyPage() {
 
@@ -88,12 +89,13 @@ export default function VerifyPage() {
             toast.error(error.response.data.message)
             setError(error.response.data.message)
         } finally {
+            dispatchUserUpdate(); // Dispatch user update event for Header
             setLoading(false)
         }
     }
 
     return (
-        <div className="flex justify-center w-full h-full items-center py-20 md:py-40 px-5">
+        <div className="flex justify-center w-full h-full items-center">
             <div className="bg-secondary-light dark:bg-muted-darker p-7 md:p-10 w-md rounded-3xl">
                 <h1 className="text-xl md:text-2xl font-bold text-center">Verify</h1>
                 <p className="text-center text-tertiary text-sm mt-4">Enter the OTP sent to your email : <Link href={`mailto:${email}`} className="font-semibold text-muted-dark dark:text-muted-light">{email ? email : "-"}</Link></p>

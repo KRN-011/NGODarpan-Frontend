@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const isAuthRoute = ['/auth/login', '/auth/signup', '/auth/signup/email'];
+const isAuthRoute = ['/auth/login', '/auth/signup', '/auth/signup/email', '/auth/signup/ngo'];
+const pureAuthRoutes = ['/auth/login', '/auth/signup', '/auth/signup/email'];
+
+const PUBLIC_FILE = /\.(.*)$/;
 
 export default function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
@@ -10,12 +13,14 @@ export default function middleware(req: NextRequest) {
         pathname.startsWith('/_next') ||
         pathname.startsWith('/api') ||
         pathname.startsWith('/static') ||
-        pathname.startsWith('/favicon.ico')
+        pathname.startsWith('/icons') ||
+        pathname.startsWith('/favicon.ico') ||
+        PUBLIC_FILE.test(pathname)
     ) {
         return NextResponse.next();
     }
 
-    if (isAuthRoute.includes(pathname) && token) {
+    if (pureAuthRoutes.includes(pathname) && token) {
         console.log('redirecting to home');
         return NextResponse.redirect(new URL('/', req.url));
     }

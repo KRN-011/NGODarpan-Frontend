@@ -31,7 +31,7 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <LenisContext.Provider value={{ scrollY }}>
-            <div data-scroll-container>
+            <div data-scroll-container className="h-full p-3">
                 {children}
             </div>
         </LenisContext.Provider>
