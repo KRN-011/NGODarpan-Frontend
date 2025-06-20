@@ -7,7 +7,6 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 import { ThemeProvider } from "@/context/ThemeContext";
 import CustomToastContainer from "@/components/CustomToastContainer";
 import Script from "next/script";
-import { LenisProvider } from "@/components/LenisProvider";
 
 export const metadata: Metadata = {
   title: "NGO Darpan",
@@ -55,11 +54,9 @@ export default async function RootLayout({
         <NextAuthProvider session={session}>
           <ThemeProvider>
             <Header />
-            <LenisProvider>
-              <main className="h-full">
+              <main className="p-3 flex-1">
                 {children}
               </main>
-            </LenisProvider>
             <CustomToastContainer />
           </ThemeProvider>
         </NextAuthProvider>

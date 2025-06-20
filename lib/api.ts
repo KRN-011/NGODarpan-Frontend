@@ -4,13 +4,11 @@ import Cookies from 'js-cookie';
 // API URL
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// JWT Token
-export const JWT_TOKEN = Cookies.get('token');
-
 // ===================================================
 // Custom User Authentication
 // ===================================================
 
+// Register User
 export const registerUser = async (data: any) => {
     try {
         const response = await axios.post(`${API_URL}/auth/register`, data);
@@ -26,7 +24,7 @@ export const registerUser = async (data: any) => {
     }
 };
 
-// Login User
+// Login User 
 export const loginUser = async (data: any) => {
     try {
         const response = await axios.post(`${API_URL}/auth/login`, data);
@@ -54,7 +52,7 @@ export const logoutUser = async (token: string) => {
     }
 };
 
-// Verify User
+// Verify User 
 export const verifyUser = async (otp: string, token: string) => {
     try {        
         const response = await axios.post(`${API_URL}/auth/verify`, { otp, token });
@@ -64,24 +62,35 @@ export const verifyUser = async (otp: string, token: string) => {
     }
 };
 
+// Resend OTP 
+export const resendOtp = async (token: string) => {
+    try {
+        const response = await axios.post(`${API_URL}/auth/resend-otp`, { token });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
 // ===================================================
 // Social Media Authentication
 // ===================================================
 
+// Social Media Authentication
 export const socialMediaAuthentication = async (data: any) => {
     try {
         const response = await axios.post(`${API_URL}/auth/social`, data);
-
-        console.log(response);
-
         return response.data;
     } catch (error) {
         throw error;
     }
 };
 
+// Logout User with Social Media 
 export const logoutUserWithSocialMedia = async () => {
     try {
+        const JWT_TOKEN =  Cookies.get('token');
+        
         const response = await axios.post(`${API_URL}/auth/social/logout`, { data: JWT_TOKEN });
         return response.data;
     } catch (error) {
@@ -93,7 +102,10 @@ export const logoutUserWithSocialMedia = async () => {
 // Profile
 // ===================================================
 
+// Update Profile
 export const updateProfile = async (data: any) => {
+    const JWT_TOKEN =  Cookies.get('token');
+
     try {
         const response = await axios.post(`${API_URL}/profile/update`, data, {
             headers: {
@@ -106,7 +118,10 @@ export const updateProfile = async (data: any) => {
     }
 };
 
+// Get Profile
 export const getProfile = async () => {
+    const JWT_TOKEN =  Cookies.get('token');
+
     try {
         const response = await axios.get(`${API_URL}/profile`, {
             headers: {
@@ -119,9 +134,36 @@ export const getProfile = async () => {
     }
 }
 
-export const uploadImage = async (data: any) => {
+// ===================================================
+// NGO 
+// ===================================================
+
+// Create NGO
+export const createNGO = async (data: any) => {
+    const JWT_TOKEN =  Cookies.get('token');
+
     try {
-        const response = await axios.post(`${API_URL}/miscellaneous/upload-image`, {image: data}, {  
+        const response = await axios.post(`${API_URL}/ngo/create`, data, {
+            headers: {
+                Authorization: `Bearer ${JWT_TOKEN}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// ===================================================
+// Miscellaneous
+// ===================================================
+
+// Upload Image
+export const uploadImage = async (data: any, module: string) => {
+    const JWT_TOKEN =  Cookies.get('token');
+
+    try {
+        const response = await axios.post(`${API_URL}/miscellaneous/upload-image`, {data, module}, {  
             headers: {
                 Authorization: `Bearer ${JWT_TOKEN}`
             }

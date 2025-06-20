@@ -115,7 +115,7 @@ export default function Profile() {
                 return;
             }
 
-            const imageResponse = await uploadImage(profileImage);
+            const imageResponse = await uploadImage({image: profileImage}, "userProfile");
 
             const profileResponse = await updateProfile(data);
 
